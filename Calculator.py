@@ -15,8 +15,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #Gregory Clarke
 #Advanced Computer Programming
-#11/12/2018
+#11/16/2018
 
+import decimal
 from tkinter import *
 from tkinter import ttk
 import tkinter as tk
@@ -38,6 +39,11 @@ class App:
         self.helpmenu.add_command(label="About", command=self.new)  # option in help
         root.config(menu=self.menubar)
 
+        ent = tk.Entry(root)
+        ent.bind_all('<Key>', self.key_in)
+        ent.bind_all('<Return>', self.equalpress)
+        ent.focus_set()
+
         self.show = StringVar() #displays the numbers being worked with
         self.name = ttk.Entry(self.content, textvariable=self.show, state="readonly")
         self.one = ttk.Button(self.content, text="1", command=lambda: self.press(1))
@@ -58,6 +64,7 @@ class App:
         self.dec = ttk.Button(self.content, text=".", command=lambda: self.press("."))
         self.neg = ttk.Button(self.content, text="(-)", command=lambda: self.press("-"))
         self.enter = ttk.Button(self.content, text="=", command=self.equalpress)
+        self.enter.bind("<Return>", self.equalpress)
 
         self.content.grid(column=0, row=0, sticky="nsew", padx=(12,12), pady=(12,12))
         self.name.grid(column=0, row=0, columnspan=2, sticky="nsew", padx=(12,12), pady=(12,12))
@@ -84,6 +91,29 @@ class App:
         root.rowconfigure(0, weight=1)
         root.minsize(435, 285)
 
+    def key_in(self, event):
+        ##shows key or tk code for the key
+        if event.keysym == 'Escape':
+            root.quit()
+
+        if event.char in "1234567890+-*/.":
+            # normal number and letter characters
+            self.expression = self.expression + str(event.char)
+
+            # update the expression by using set method
+            self.show.set(self.expression)
+
+        elif event.char == "=":
+            try:
+                self.total = str(eval(self.expression))
+                self.show.set(self.total)
+                self.expression = ""
+                self.file_append()  # adds number to a file
+
+            except:
+                self.show.set(" error ")
+                self.expression = ""
+
     def press(self, num):
         # concatenation of string
         self.expression = self.expression + str(num)
@@ -91,12 +121,12 @@ class App:
         # update the expression by using set method
         self.show.set(self.expression)
 
-    def equalpress(self): #evaluates the string with all the numbers to get an answer
+    def equalpress(self, event): #evaluates the string with all the numbers to get an answer
 
         try:
             self.total = str(eval(self.expression))
             self.show.set(self.total)
-            self.expression = ""
+            self.expression = self.total
             self.file_append() #adds number to a file
 
         except:
@@ -130,14 +160,14 @@ class App:
         top = Toplevel(root, padx=15, pady=15)
         top.title("Answers")
         t = StringVar()
-        nums=""
+        nums = ""
         if self.text == []:
             t.set("There are no previous answers!")
 
         elif self.text != []:
             for x in self.text:
                 nums += x
-        t.set(nums)
+            t.set(nums)
 
         msg = Message(top, textvariable=t, width=100)
         msg.pack()
@@ -165,7 +195,7 @@ class App:
 
 
 root = Tk()
-root.config(background="light green")
+root.config(background="light blue")
 root.resizable(width=False, height=False)
 app = App(root)
 root.title("Calculator")
